@@ -1,0 +1,121 @@
+---
+title: "Demo Dashboard"
+author: "rmarkdown.rstudio.com"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(dplyr)
+library(flexdashboard)
+read.csv(file = 'C:\\Users\\Amardeep\\Downloads\\FPR.csv')  
+dat <- data.frame(dt)
+dat <- na.omit(dt)
+```
+
+page 1
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Scatter Chart with geom_point
+
+```{r}
+library(viridis)
+df<-dat[c(dat$Agency,dat$PropertyAreaPlanted), c("Agency", "PropertyAreaPlanted")]
+ggplot(df, aes(x=Agency, y=PropertyAreaPlanted),orientation="yAxisReversed") + 
+  geom_bar(stat = "identity")+
+  scale_fill_viridis_c(option = 'magma') +
+  theme_minimal() + 
+coord_flip()
+```
+
+### geom_smooth Linear Regression
+
+```{r}
+library(viridis)
+df1<-dat[c(dat$Season,dat$PropertyAreaPlanted), c("Season", "PropertyAreaPlanted")]
+ggplot(df1, aes(x=Season, y=PropertyAreaPlanted),orientation="yAxisReversed") + 
+  geom_bar(stat = "identity")+
+    scale_fill_viridis_c() +
+  theme_minimal() + 
+coord_flip()
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_smooth with Loess Smoothed Fit
+
+```{r}
+library(viridis)
+df<-dat[c(dat$Agency,dat$FundingRate), c("Agency", "FundingRate")]
+ggplot(df, aes(x=Agency, y=FundingRate),orientation="yAxisReversed") + 
+  geom_bar(stat = "identity")+
+  theme_minimal() + 
+coord_flip()
+```
+
+### Constraining Slope with stat_smooth
+
+```{r}
+dat %>%
+  ggplot( aes(x=Season, y=RequestedSeedlings)) +
+    geom_line( color="grey") +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=6) +
+    ggtitle("Trend by Year")
+```
+
+page 2
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### stat_density Example
+
+```{r}
+ggplot(dat, aes(x=dat$RequestedSeedlings, y=dat$FundingRate)) +
+  geom_point() +
+  geom_smooth(method=lm , color="red", fill="#69b3a2", se=TRUE)
+```
+
+### Add Conditional Density Curves to Plot
+```{r}
+library(MASS)
+ 
+# Vector color
+my_colors <- colors()[as.numeric(dat$Agency)*11]
+pcd <- data.frame(dat$FundedpropertyID,dat$FOCode,dat$FundingRate,dat$ApprovedSeedlings,dat$PropertyAreaPlanted) # Make the graph
+parcoord(pcd[,c(1:4)] , col= my_colors  )
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_density and facet_wrap Together
+
+```{r}
+library(ggplot2)
+library(dplyr)
+dtt <- data.frame(dat$Season, dat$FundingRate, dat$Agency)
+# stacked area chart
+ggplot(dtt, aes(x=dat.Season, y=dat.FundingRate, fill=dat.Agency)) + 
+    geom_area()
+```
+
+### Density and Scatterplot Overlay Using geom_density
+
+```{r}
+dat %>%
+  ggplot( aes(x=Season, y=FundingRate)) +
+    geom_line( color="grey") +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=6) +
+    ggtitle("Trend by Year")
+```
