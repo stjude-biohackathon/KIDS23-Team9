@@ -14,7 +14,9 @@ SJ_CTP_list <- readRDS("SJ_CTP_list.rds")
 # PathsTargets data 
 TP_list <- readRDS("PathsTargets_list.rds")
 # Node types
-node_types <- readRDS("node_types.rds")
+node_types_full <- readRDS("node_types_full.rds")
+# Gene compound strengths
+gene_compound_strengths <- readRDS("gene_compound_strengths.rds")
 
 ui <- fluidPage(
   tags$head(
@@ -75,8 +77,6 @@ server <- function(input, output) {
   #compound_id_vector <- reactiveVal(NULL)
   #pathway_id_vector <- reactiveVal(NULL)
   
-  id_text<-""
-  
   observeEvent(input$compound_id_submit_btn, {
     # read in the uploaded file
     id_file <- input$compound_id_file
@@ -86,7 +86,6 @@ server <- function(input, output) {
       id_text <- ""
     }
     
-    print("Hello")
     # add the pasted text to the input
     id_text <- paste(id_text, input$compound_id_text)
     print(id_text)
@@ -110,8 +109,9 @@ server <- function(input, output) {
     }
     
     curr_CTP_list_nodes <- nodes_from_edge_list(curr_CTP_list_edgelist)
-    curr_CTP_list_nodes <- dplyr::left_join(data.frame(node=curr_CTP_list_nodes),node_types)
+    curr_CTP_list_nodes <- dplyr::left_join(data.frame(node=curr_CTP_list_nodes),node_types_full)
     curr_CTP_list_nodes$color <- case_when(curr_CTP_list_nodes$type == 'gene' ~ '#8DD3C7', curr_CTP_list_nodes$type == 'pathway' ~ '#FFFFB3')
+    curr_CTP_list_nodes <- dplyr::left_join(curr_CTP_list_nodes,gene_compound_strengths,by=c("node"="gene"))
     
     curr_CTP_list_paths <- curr_CTP_list_nodes %>% 
       filter(curr_CTP_list_nodes$type == 'pathway') %>%
@@ -142,7 +142,7 @@ server <- function(input, output) {
       nodes <- data.frame(id = curr_CTP_list_nodes$node,
                           label = curr_CTP_list_nodes$node,
                           group = curr_CTP_list_nodes$type,
-                          title = curr_CTP_list_nodes$node,
+                          title = paste0("<p><b>", curr_CTP_list_nodes$node,"</b><br>Compounds and Active Strengths<br>", curr_CTP_list_nodes$compound_strengths,"</p>"),
                           color = curr_CTP_list_nodes$color)
       edges <- data.frame(from=curr_CTP_list_edgelist$edge1,to=curr_CTP_list_edgelist$edge2)
       
@@ -183,8 +183,9 @@ server <- function(input, output) {
     }
     
     curr_TP_list_nodes <- nodes_from_edge_list(curr_TP_list_edgelist)
-    curr_TP_list_nodes <- dplyr::left_join(data.frame(node=curr_TP_list_nodes),node_types)
-    curr_TP_list_nodes$color <- case_when(curr_TP_list_nodes$type == 'gene' ~ '#8DD3C7', curr_TP_list_nodes$type == 'pathway' ~ '#FFFFB3')
+    curr_TP_list_nodes <- dplyr::left_join(data.frame(node=curr_TP_list_nodes),node_types_full)
+    curr_TP_list_nodes$color <- case_when(curr_TP_list_nodes$type == 'gene' ~ '#8DD3C7', curr_TP_list_nodes$type == 'pathway' ~ '#FFFFB3', curr_TP_list_nodes$type == 'gene_no_compound' ~ '#A1CAF1')
+    curr_TP_list_nodes <- dplyr::left_join(curr_TP_list_nodes,gene_compound_strengths,by=c("node"="gene"))
     
     curr_TP_list_genes <- curr_TP_list_nodes %>% 
       filter(curr_TP_list_nodes$type == 'gene') %>%
@@ -217,13 +218,14 @@ server <- function(input, output) {
       nodes <- data.frame(id = curr_TP_list_nodes$node,
                           label = curr_TP_list_nodes$node,
                           group = curr_TP_list_nodes$type,
-                          title = curr_TP_list_nodes$node,
+                          title = paste0("<p><b>", curr_TP_list_nodes$node,"</b><br>Compounds and Active Strengths<br>", curr_TP_list_nodes$compound_strengths,"</p>"),
                           color = curr_TP_list_nodes$color)
       edges <- data.frame(from=curr_TP_list_edgelist$edge1,to=curr_TP_list_edgelist$edge2)
       
       visNetwork(nodes, edges) %>% 
         visGroups(groupname = "gene", color = "#8DD3C7") %>%
         visGroups(groupname = "pathway", color = "#FFFFB3") %>%
+        visGroups(groupname = 'gene_no_compound', color = '#A1CAF1') %>%
         visLegend(width = 0.1, position = "right", main = "group")
     })
     
