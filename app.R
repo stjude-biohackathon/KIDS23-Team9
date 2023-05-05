@@ -17,9 +17,9 @@ source("CTP_helpers.R")
 
 # Load compound paths targets full data
 # CompoundTargetsPaths data
-SJ_CTP_data <- readRDS("SJ_CTP_list.rds")
+SJ_CTP_list <- readRDS("SJ_CTP_list.rds")
 # PathsTargets data 
-TP_data <- readRDS("PathsTargets_list.rds")
+TP_list <- readRDS("PathsTargets_list.rds")
 # Node types
 node_types <- readRDS("node_types.rds")
 
